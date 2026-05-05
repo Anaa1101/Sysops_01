@@ -33,7 +33,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules # Prevents local node_modules from overwriting the container's

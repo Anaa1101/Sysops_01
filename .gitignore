@@ -2,3 +2,19 @@
 backend/.env
 node_modules/
 frontend/node_modules/
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Frontend build output
+frontend/dist/
+
+# Claude local config
+.claude/settings.local.json
