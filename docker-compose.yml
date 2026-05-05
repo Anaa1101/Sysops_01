@@ -1,0 +1,45 @@
+services:
+  # 1. The Database
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "7474:7474" # Browser interface (local dev only — do not expose in production)
+      - "7687:7687" # Bolt connection (local dev only — do not expose in production)
+    environment:
+      - NEO4J_AUTH=neo4j/sysopsdevpass # Local dev only. Change for production.
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # 2. The Python Backend
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app # Syncs your local code to the container in real-time
+    env_file:
+      - ./backend/.env
+    depends_on:
+      neo4j:
+        condition: service_healthy # Wait for Neo4j to be ready before starting
+
+  # 3. The React Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevents local node_modules from overwriting the container's
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true # Helps React hot-reload work inside Docker
+
+volumes:
+  neo4j_data:

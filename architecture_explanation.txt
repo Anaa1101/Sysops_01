@@ -1,0 +1,62 @@
+# SysOps AI - System Architecture & Multimodal RAG Explanation
+
+## 1. Introduction to SysOps AI
+SysOps AI is an intelligent, interactive diagnostic dashboard for IT infrastructure. Imagine it as a "Senior Engineer in a Box" sitting next to a sysadmin, network engineer, or on-call SRE at 3:00 AM when a core network switch goes down. Instead of frantically Googling error codes or digging through 500-page Cisco PDFs, the engineer can describe the symptom, show a photo of a blinking LED on a router, or play an audio recording of motherboard beep codes. SysOps AI searches its vast "brain" (a knowledge base of manufacturer documentation) and gives step-by-step diagnostic and resolution guidance.
+
+## 2. The Tech Stack (Technologies We Are Using)
+Think of the tech stack as the building blocks used to construct this digital senior engineer.
+
+**Frontend (The User Interface - What you see and interact with):**
+- **React.js & Vite:** These are the tools used to build the website you see. They make the website fast and interactive.
+- **Tailwind CSS:** This is a styling tool used to make the website look beautiful (colors, layout, buttons).
+- **React-Force-Graph-2D:** A special tool used to draw a visual "web" or graph of how different devices, hardware components, and resolution documents are connected together in the database.
+
+**Backend (The Brain & Server - What does the heavy lifting behind the scenes):**
+- **Python & FastAPI:** This is the core engine running on the server. FastAPI handles all the requests from the website (like when you hit "Send") very quickly.
+- **Google Gemini 2.5 Flash:** This is a powerful Artificial Intelligence model. It acts as the "eyes," "ears," and "voice" of the system. It can look at images of failing hardware, listen to beep-code or alarm audio, and write out intelligent, expert-level engineering responses.
+- **Sentence-Transformers (all-MiniLM-L6-v2):** This is a specialized AI tool that translates human language (like "amber blinking LED on switch port") into a format of numbers (called vectors or embeddings) that computers can understand and compare.
+
+**Database (The Memory):**
+- **Neo4j:** This is a "Graph Database". Instead of storing data in boring tables like an Excel spreadsheet, it stores data like a mind map. It visually and logically connects "Devices" (e.g. Cisco Catalyst 9300, Dell PowerEdge R740) to "Components" (e.g. SFP+ Transceiver, RAID Controller, PSU) to "Resolutions" (the official documentation chunks describing the fix).
+
+## 3. What File Does What? (File Structure Explained)
+
+- **`docker-compose.yml`**: The blueprint file. It allows you to start up all parts of the application (the database, the backend, and the frontend) together smoothly with a single command.
+- **`backend/main.py`**: The main control center of the backend. It receives incoming diagnostic requests, talks to the AI, searches the database for the matching documentation, and sends the final answer back to the engineer.
+- **`backend/ingest.py`**: Think of this as the librarian. It reads all the IT infrastructure documentation from a JSON file and neatly organizes them into the Neo4j database so they can be searched quickly.
+- **`backend/data/manuals.json`**: The raw text file containing all the knowledge (devices, components, symptoms, and resolution steps) that the system knows.
+- **`frontend/src/App.jsx`**: The main website code. It manages the chat window, handles file uploads (images of failing hardware / audio of beep codes), and talks to the backend.
+- **`frontend/src/components/GraphView.jsx`**: The code responsible for drawing the cool interactive "mind map" of devices, components, and resolutions on your screen.
+
+## 4. How the System Works: The Multimodal RAG Workflow
+
+"RAG" stands for **Retrieval-Augmented Generation**.
+In simple terms: Before the AI gives you an answer, it first "Retrieves" (looks up) relevant information from a trusted source (our database of vendor documentation), and then uses that information to "Generate" a smart, accurate response.
+
+"Multimodal" means it can understand different modes or types of input: text, images, and audio.
+
+Here is the step-by-step story of what happens when an engineer reports an issue:
+
+**Step 1: You Report a Symptom (The Input)**
+You upload a photo of a router with a sequence of red blinking lights, an audio clip of a server emitting three short beeps on POST, or simply type "Cat 9300 port shows amber blinking LED and link is down."
+
+**Step 2: The AI Looks and Listens (Translation)**
+If you uploaded an image or audio file, the system sends them to Google Gemini first. Gemini acts as our translator:
+- For the image, it replies: "I see a Cisco Catalyst switch with one port showing a solid amber LED, indicating an err-disabled state."
+- For the audio, it replies: "I hear three short beeps on a Dell server POST sequence — typically a memory module detection failure."
+
+**Step 3: Creating a "Search Vector" (Understanding)**
+The system takes your text, the image description, and the audio description, and combines them. The `Sentence-Transformer` tool turns this combined text into a long list of numbers called a "Vector." This vector captures the true *meaning* of the symptom, not just the exact words.
+
+**Step 4: Searching the Database (Retrieval)**
+The system takes this "Vector" and searches the Neo4j database. It looks for components and resolutions that have a similar meaning (a similar vector). It's like finding the exact right page in a massive vendor runbook. If it knows the engineer is troubleshooting a "Cisco Catalyst 9300," it filters the search to only look at Catalyst 9300 components!
+
+**Step 5: Putting it Together (Augmentation)**
+The system takes the resolution document it found from the database and packages it together with your original symptom description, the image, and the audio.
+
+**Step 6: Giving the Final Answer (Generation)**
+This entire package is sent to the Gemini AI one last time with a strict instruction: *"You are SysOps AI, a senior IT infrastructure engineer. Look at the engineer's symptom and the official documentation we retrieved. Give them step-by-step diagnostic and remediation guidance — including exact CLI commands, GUI paths, IPMI/BMC actions, hex codes, or LED meanings — based ONLY on this documentation."*
+
+Gemini writes out a precise, vendor-accurate response, and the website displays it to you. At the same time, the website draws a graph showing how the device connects to the component and to the resolution.
+
+By doing this, the AI doesn't just guess or make things up (hallucinate) — it always bases its answers on the official manufacturer documentation we provided in the database!
