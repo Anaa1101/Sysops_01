@@ -200,7 +200,7 @@ export function GraphView({ graphData, hasConversationGraph }) {
   })() : [];
 
   return (
-    <div className="flex-grow flex flex-col bg-slate-950 rounded-xl border border-slate-700/60 overflow-hidden shadow-2xl">
+    <div className="flex-grow flex flex-col bg-stone-900 rounded-3xl border border-stone-300 overflow-hidden shadow-xl">
 
       {/* ── Toolbar ── */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-700/60 flex-shrink-0 gap-4">
